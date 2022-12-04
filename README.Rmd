@@ -1,0 +1,60 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# strbasehelper
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+`strbasehelper` is a package designed for helping pre-processing and plotting gene profile data using information from [STRBase](https://strbase.nist.gov/).
+
+## Installation
+
+You can install the development version of strbasehelper from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("bartonicek/strbasehelper")
+```
+
+## Example
+
+Here's how we can use `strbasehelper` to match our own profile data with base-pair data from [STRBase](https://strbase.nist.gov/) and plot it:
+
+```{r example, warning=FALSE, fig.retina=2}
+library(strbasehelper)
+library(ggplot2)
+
+# Start with profile data: a long dataframe with the counts of alleles within loci
+dplyr::glimpse(profile_data_long)
+
+# Create a ProfileManager object
+profile_manager <- ProfileManager$new(profile_data_long)
+
+# The object retains a copy of the profile
+dplyr::glimpse(profile_manager$profile_data)
+
+# Use the ProfileManager object to fetch data tables from STRBase
+# (fetches tables for all loci in the profile data by default), 
+# and automatically match base pair data with the profile data
+profile_manager$fetch_strbase_tables()
+profile_manager$extract_basepairs()
+
+ggplot(profile_manager$profile_data, aes(x = base_pairs, y = n)) +
+  geom_line(stat = "allele_spike") +
+  facet_wrap(~ colour, nrow = 3)
+
+```
+

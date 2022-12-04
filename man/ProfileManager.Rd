@@ -54,11 +54,17 @@ Create a new ProfileManager object
 \if{latex}{\out{\hypertarget{method-ProfileManager-fetch_strbase_tables}{}}}
 \subsection{Method \code{fetch_strbase_tables()}}{
 Retrives multiple sets of tables with information about gene loci from STRBase
-(one for each unique gene locus in the data)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProfileManager$fetch_strbase_tables(loci = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{loci}}{Loci to be retrived (defaults to all unique loci in the profile data)}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProfileManager-extract_basepairs"></a>}}

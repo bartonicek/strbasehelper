@@ -3,7 +3,7 @@
 #' @description
 #' An R6 class that handles fetching STRBase tables and linking it with profile data
 #'
-#'
+#' @export
 ProfileManager <- R6::R6Class("ProfileManager", list(
   #' @field multiplex The multiplex to be used
   multiplex = NULL,
@@ -74,13 +74,19 @@ ProfileManager <- R6::R6Class("ProfileManager", list(
       set <- tab2[grep("PowerPlex 16", tab2[, 3, drop = TRUE]), 1, drop = TRUE]
       set_number <- as.numeric(sub('^Set ([1-9])$', '\\1', set))
       set_pattern <- paste0("^Set [0-9,]*", set_number, "[,0-9]*$")
-      bp_col_num <- grep(set_pattern, names(tab3))
-      variant_rows <- grepl("variant", tab3[, ncol(tab3), drop = TRUE])
 
-      bp_tab <- tab3[!variant_rows, c(1, bp_col_num)]
+      col_names <- names(tab3)
+      ref_col <- grep("^Ref.$", col_names)
+      rep_str_col <- grep("^Repeat.+Structure", col_names)
+      bp_col <- grep(set_pattern, col_names)
+
+      variant_rows <- grepl("variant", tab3[, ref_col, drop = TRUE])
+      empty_rep_rows <- tab3[, rep_str_col] == ""
+
+      bp_tab <- tab3[!variant_rows & !empty_rep_rows, c(1, bp_col)]
       names(bp_tab) <- c("allele", "base_pairs")
       bp_tab$locus <- loci[i]
-      bp_tab$allele <- as.numeric(gsub("^(\\d{2}).+$", '\\1', bp_tab$allele))
+      bp_tab$allele <- as.numeric(gsub("^(\\d{2}\\.?\\d?).*[[:blank:]].*$", "\\1", bp_tab$allele))
       bp_tab$base_pairs <- as.numeric(gsub(" bp$", "", bp_tab$base_pairs))
 
       bp_tab <- na.omit(bp_tab)
@@ -89,6 +95,9 @@ ProfileManager <- R6::R6Class("ProfileManager", list(
       locus_bp_tab <- rbind(locus_bp_tab, bp_tab)
     }
 
+    if ("base_pairs" %in% names(self$profile_data)) {
+      self$profile_data <- subset(self$profile_data, select = -c(base_pairs))
+    }
     self$profile_data <- dplyr::left_join(self$profile_data, locus_bp_tab,
                                by = c("locus", "allele"))
 
