@@ -71,9 +71,35 @@ profile_manager$fetch_strbase_tables()
 #> Fetching VWA...      [15/15]
 profile_manager$extract_basepairs()
 
-ggplot(profile_manager$profile_data, aes(x = base_pairs, y = n)) +
+minmax <- function(x) {
+  return(data.frame(xmin = min(x), ymax = max(x)))
+}
+
+# Now we can plot with ggplot2
+profile_data <- profile_manager$profile_data
+ggplot(profile_data, aes(x = base_pairs, y = n, col = colour)) +
   geom_line(stat = "allele_spike") +
-  facet_wrap(~ colour, nrow = 3)
+  geom_label(aes(group = locus, y = max(n) + 0.5, label = locus), 
+             stat = "summary", fun = "mean", orientation = "y") +
+  geom_text(aes(y = -Inf, label = allele), vjust = 2, size = 3) +
+  scale_x_continuous(limits = c(85, 455), breaks = seq(90, 450, 30), position = "top") +
+  scale_color_manual(values = c("#377eb8", "#4daf4a", "black")) +
+  ylim(0, 5.5) +
+  coord_cartesian(clip = "off") +
+  facet_wrap(~ colour, nrow = 3, scales = "free_x") +
+  labs(x = "Base pairs", y = NULL) +
+  guides(col = "none") +
+  theme_bw() +
+  theme(axis.ticks = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x  = element_blank(),
+        panel.background = element_rect(fill = '#F7F7F2'),
+        panel.border = element_rect(fill = NA, colour = '#999690'),
+        panel.spacing = unit(2, "lines"),
+        plot.margin = unit(c(1, 1, 2, 1), "lines"),
+        plot.background = element_rect(fill = "#DEDED9"))
 ```
 
 <img src="man/figures/README-example-1.png" width="100%" />
