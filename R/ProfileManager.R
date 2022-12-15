@@ -101,5 +101,39 @@ ProfileManager <- R6::R6Class("ProfileManager", list(
     self$profile_data <- dplyr::left_join(self$profile_data, locus_bp_tab,
                                by = c("locus", "allele"))
 
+  },
+
+  #' @description
+  #' Plot base pair information
+  profile_plot = function() {
+
+    profile_data <- subset(self$profile_data, !is.na(base_pairs))
+    max_count <- max(profile_data$n)
+
+    ggplot2::ggplot(profile_data, ggplot2::aes(x = base_pairs, y = n, col = colour)) +
+      ggplot2::geom_line(stat = "allele_spike") +
+      ggplot2::geom_label(ggplot2::aes(group = locus, y = max(n) + 0.5, label = locus),
+                 stat = "summary", fun = "mean", orientation = "y") +
+      ggplot2::geom_text(ggplot2::aes(y = -Inf, label = allele), vjust = 2, size = 3) +
+      ggplot2::scale_x_continuous(position = "top") +
+      ggplot2::scale_color_manual(values = c("#377eb8", "#4daf4a", "black")) +
+      ggplot2::ylim(0, max_count + 1) +
+      ggplot2::coord_cartesian(clip = "off") +
+      ggplot2::facet_wrap(~ colour, nrow = 3, scales = "free_x") +
+      ggplot2::labs(x = "Base pairs", y = NULL) +
+      ggplot2::guides(col = "none") +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.ticks = ggplot2::element_blank(),
+            strip.background = ggplot2::element_blank(),
+            strip.text = ggplot2::element_blank(),
+            panel.grid.major.x = ggplot2::element_blank(),
+            panel.grid.minor.x  = ggplot2::element_blank(),
+            panel.background = ggplot2::element_rect(fill = '#F7F7F2'),
+            panel.border = ggplot2::element_rect(fill = NA, colour = '#999690'),
+            panel.spacing = ggplot2::unit(2, "lines"),
+            plot.margin = ggplot2::unit(c(1, 1, 2, 1), "lines"),
+            plot.background = ggplot2::element_rect(fill = "#DEDED9"))
+
+
   }
 ))

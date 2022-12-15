@@ -27,6 +27,7 @@ An R6 class that handles fetching STRBase tables and linking it with profile dat
 \item \href{#method-ProfileManager-new}{\code{ProfileManager$new()}}
 \item \href{#method-ProfileManager-fetch_strbase_tables}{\code{ProfileManager$fetch_strbase_tables()}}
 \item \href{#method-ProfileManager-extract_basepairs}{\code{ProfileManager$extract_basepairs()}}
+\item \href{#method-ProfileManager-profile_plot}{\code{ProfileManager$profile_plot()}}
 \item \href{#method-ProfileManager-clone}{\code{ProfileManager$clone()}}
 }
 }
@@ -73,6 +74,16 @@ Retrives multiple sets of tables with information about gene loci from STRBase
 Extract basepair information from STRBase tables
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProfileManager$extract_basepairs()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ProfileManager-profile_plot"></a>}}
+\if{latex}{\out{\hypertarget{method-ProfileManager-profile_plot}{}}}
+\subsection{Method \code{profile_plot()}}{
+Plot base pair information
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$profile_plot()}\if{html}{\out{</div>}}
 }
 
 }

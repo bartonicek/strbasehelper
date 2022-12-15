@@ -37,7 +37,6 @@ Here's how we can use `strbasehelper` to match our own profile data with base-pa
 
 ```{r example, warning=FALSE, fig.retina=2}
 library(strbasehelper)
-library(ggplot2)
 
 # Start with profile data: a long dataframe with the counts of alleles within loci
 dplyr::glimpse(profile_data_long)
@@ -54,15 +53,21 @@ dplyr::glimpse(profile_manager$profile_data)
 profile_manager$fetch_strbase_tables()
 profile_manager$extract_basepairs()
 
-minmax <- function(x) {
-  return(data.frame(xmin = min(x), ymax = max(x)))
-}
+# Use plotting method to make a nice ggplot2 plot...
+profile_manager$profile_plot()
 
-# Now we can plot with ggplot2
+```
+
+```{r, eval = FALSE}
+
+# ...equivalent to the following code
+
+library(ggplot2)
 profile_data <- profile_manager$profile_data
+
 ggplot(profile_data, aes(x = base_pairs, y = n, col = colour)) +
   geom_line(stat = "allele_spike") +
-  geom_label(aes(group = locus, y = max(n) + 0.5, label = locus), 
+  geom_label(aes(group = locus, y = max(n) + 0.5, label = locus),
              stat = "summary", fun = "mean", orientation = "y") +
   geom_text(aes(y = -Inf, label = allele), vjust = 2, size = 3) +
   scale_x_continuous(limits = c(85, 455), breaks = seq(90, 450, 30), position = "top") +
@@ -83,6 +88,7 @@ ggplot(profile_data, aes(x = base_pairs, y = n, col = colour)) +
         panel.spacing = unit(2, "lines"),
         plot.margin = unit(c(1, 1, 2, 1), "lines"),
         plot.background = element_rect(fill = "#DEDED9"))
+
 
 ```
 

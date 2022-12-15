@@ -27,7 +27,6 @@ base-pair data from [STRBase](https://strbase.nist.gov/) and plot it:
 
 ``` r
 library(strbasehelper)
-library(ggplot2)
 
 # Start with profile data: a long dataframe with the counts of alleles within loci
 dplyr::glimpse(profile_data_long)
@@ -71,15 +70,22 @@ profile_manager$fetch_strbase_tables()
 #> Fetching VWA...      [15/15]
 profile_manager$extract_basepairs()
 
-minmax <- function(x) {
-  return(data.frame(xmin = min(x), ymax = max(x)))
-}
+# Use plotting method to make a nice ggplot2 plot...
+profile_manager$profile_plot()
+```
 
-# Now we can plot with ggplot2
+<img src="man/figures/README-example-1.png" width="100%" />
+
+``` r
+
+# ...equivalent to the following code
+
+library(ggplot2)
 profile_data <- profile_manager$profile_data
+
 ggplot(profile_data, aes(x = base_pairs, y = n, col = colour)) +
   geom_line(stat = "allele_spike") +
-  geom_label(aes(group = locus, y = max(n) + 0.5, label = locus), 
+  geom_label(aes(group = locus, y = max(n) + 0.5, label = locus),
              stat = "summary", fun = "mean", orientation = "y") +
   geom_text(aes(y = -Inf, label = allele), vjust = 2, size = 3) +
   scale_x_continuous(limits = c(85, 455), breaks = seq(90, 450, 30), position = "top") +
@@ -101,5 +107,3 @@ ggplot(profile_data, aes(x = base_pairs, y = n, col = colour)) +
         plot.margin = unit(c(1, 1, 2, 1), "lines"),
         plot.background = element_rect(fill = "#DEDED9"))
 ```
-
-<img src="man/figures/README-example-1.png" width="100%" />
