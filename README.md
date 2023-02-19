@@ -70,7 +70,7 @@ profile_manager$fetch_strbase_tables()
 #> Fetching VWA...      [15/15]
 profile_manager$extract_basepairs()
 
-# Use plotting method to make a nice ggplot2 plot...
+# Use plotting method to make a nice-looking ggplot2 plot...
 profile_manager$profile_plot()
 ```
 
@@ -80,20 +80,23 @@ profile_manager$profile_plot()
 
 # ...equivalent to the following code
 
+cols <- c(blue = "#377eb8", green = "#4daf4a", yellow = "black")
+
 library(ggplot2)
 profile_data <- profile_manager$profile_data
+profile_data$colour <- factor(profile_data$colour, levels = names(cols))
+max_count <- max(profile_data$n)
 
-ggplot(profile_data, aes(x = base_pairs, y = n, col = colour)) +
+p <- ggplot(profile_data, aes(x = base_pairs, y = n, col = colour, label = allele)) +
   geom_line(stat = "allele_spike") +
   geom_label(aes(group = locus, y = max(n) + 0.5, label = locus),
              stat = "summary", fun = "mean", orientation = "y") +
-  geom_text(aes(y = -Inf, label = allele), vjust = 2, size = 3) +
-  scale_x_continuous(limits = c(85, 455), breaks = seq(90, 450, 30), position = "top") +
-  scale_color_manual(values = c("#377eb8", "#4daf4a", "black")) +
-  ylim(0, 5.5) +
-  coord_cartesian(clip = "off") +
+  scale_x_continuous(position = "top") +
+  scale_color_manual(values = cols) +
+  ylim(0, max_count + 1) +
   facet_wrap(~ colour, nrow = 3, scales = "free_x") +
   labs(x = "Base pairs", y = NULL) +
+  coord_cartesian(clip = "off")
   guides(col = "none") +
   theme_bw() +
   theme(axis.ticks = element_blank(),
@@ -106,4 +109,5 @@ ggplot(profile_data, aes(x = base_pairs, y = n, col = colour)) +
         panel.spacing = unit(2, "lines"),
         plot.margin = unit(c(1, 1, 2, 1), "lines"),
         plot.background = element_rect(fill = "#DEDED9"))
+  
 ```

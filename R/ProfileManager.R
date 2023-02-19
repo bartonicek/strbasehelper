@@ -7,6 +7,8 @@
 ProfileManager <- R6::R6Class("ProfileManager", list(
   #' @field multiplex The multiplex to be used
   multiplex = NULL,
+  #' @field fetched List of fetched loci
+  fetched = NULL,
   #' @field profile_data Profile data, stored as a long dataframe (locus, colour, allele, count)
   profile_data = NULL,
   #' @field unique_loci Vector of unique loci present in the data
@@ -20,12 +22,15 @@ ProfileManager <- R6::R6Class("ProfileManager", list(
   #' Create a new ProfileManager object
   #' @param profile_data Profile data, in a long format
   #' @param multiplex The multiplex to be used for linking
-  initialize = function(profile_data, multiplex = "Powerplex 16") {
+  initialize = function(profile_data, multiplex = "PowerPlex 16") {
 
     cols <- c("allele", "colour", "locus", "n")
     stopifnot(all.equal(sort(names(profile_data)), cols))
 
+    if (!is.factor(profile_data$colour)) profile_data$colour <- factor(profile_data$colour)
+
     self$multiplex <- multiplex
+    self$fetched <- character(0)
     self$profile_data <- profile_data
     self$unique_loci <- unique(profile_data$locus)
   },
@@ -33,32 +38,40 @@ ProfileManager <- R6::R6Class("ProfileManager", list(
   #' @description
   #' Retrives multiple sets of tables with information about gene loci from STRBase
   #' @param loci Loci to be retrived (defaults to all unique loci in the profile data)
-  fetch_strbase_tables = function(loci = NULL) {
+  #' @param refetch Refetch tables that have been already fetched
+  #' @param n (Optional) fetch only the first n loci
+  fetch_strbase_tables = function(loci = NULL, n = NULL, refetch = FALSE) {
 
-    if (is.null(loci)) {
-      loci <- self$unique_loci
-    }
+    if (is.null(loci)) loci <- self$unique_loci
 
     for (i in seq_along(loci)) {
 
+      if (!is.null(n) && i > n) break
+      if (loci[i] %in% self$fetched && !refetch) {
+        message(loci[i], " is already fetched & will be skipped (run with `refetch = TRUE` if intentional)")
+        next
+      }
       if (loci[i] %in% self$invalid_loci) next
 
       # Print progress
-      cat("Fetching ", sprintf('%-12s', paste0(loci[i], "...")),
-          '[', i, '/', length(loci), ']', '\n', sep = "")
+      message("Fetching ", sprintf('%-12s', paste0(loci[i], "...")),
+          '[', i, '/', ifelse(!is.null(n), n, length(loci)), ']', sep = "")
 
       url <- paste0("https://strbase.nist.gov/str_",
                     loci[i], ".htm")
       self$tables[[loci[i]]] <- rvest::read_html(url) |>
         rvest::html_table(fill = TRUE, header = TRUE)
+
+      self$fetched <- c(self$fetched, loci[i])
     }
   },
 
   #' @description
   #' Extract basepair information from STRBase tables
-  extract_basepairs = function() {
+  #' @param multiplex The multiplex to be used for matching base-pairs
+  extract_basepairs = function(multiplex = "PowerPlex 16") {
     if (length(self$tables) == 0) {
-      stop("Please fetch tables from STRBase first using $fetch_strbase_tables() method")
+      stop("Please fetch some tables from STRBase using the $fetch_strbase_tables() method")
     }
 
     loci <- names(self$tables)
@@ -71,9 +84,17 @@ ProfileManager <- R6::R6Class("ProfileManager", list(
       tab2 <- self$tables[[loci[i]]][[2]]
       tab3 <- self$tables[[loci[i]]][[3]]
 
-      set <- tab2[grep("PowerPlex 16", tab2[, 3, drop = TRUE]), 1, drop = TRUE]
+      set <- tab2[grep(multiplex, tab2[, 3, drop = TRUE]), 1, drop = TRUE]
+
+      if (length(set) == 0) {
+        message(paste0("Found no match for locus ", loci[i], " and multiplex ",
+                       multiplex, ". Check https://strbase.nist.gov/str_",
+                       loci[i], ".htm. Skipping locus."))
+        next
+      }
+
       set_number <- as.numeric(sub('^Set ([1-9])$', '\\1', set))
-      set_pattern <- paste0("^Set [0-9,]*", set_number, "[,0-9]*$")
+      set_pattern <- paste0("^Set [0-9,]*", set_number, "[,0-9]*\\*?$")
 
       col_names <- names(tab3)
       ref_col <- grep("^Ref.$", col_names)
@@ -87,6 +108,7 @@ ProfileManager <- R6::R6Class("ProfileManager", list(
       names(bp_tab) <- c("allele", "base_pairs")
       bp_tab$locus <- loci[i]
       bp_tab$allele <- as.numeric(gsub("^(\\d{2}\\.?\\d?).*[[:blank:]].*$", "\\1", bp_tab$allele))
+
       bp_tab$base_pairs <- as.numeric(gsub(" bp$", "", bp_tab$base_pairs))
 
       bp_tab <- na.omit(bp_tab)
@@ -105,18 +127,19 @@ ProfileManager <- R6::R6Class("ProfileManager", list(
 
   #' @description
   #' Plot base pair information
-  profile_plot = function() {
+  #' @param col Named vector of colours matching the colour variable in the dataset
+  profile_plot = function(col = c(blue = "#377eb8", green = "#4daf4a", yellow = "black")) {
 
     profile_data <- subset(self$profile_data, !is.na(base_pairs))
     max_count <- max(profile_data$n)
 
     ggplot2::ggplot(profile_data, ggplot2::aes(x = base_pairs, y = n, col = colour)) +
       ggplot2::geom_line(stat = "allele_spike") +
-      ggplot2::geom_label(ggplot2::aes(group = locus, y = max(n) + 0.5, label = locus),
-                 stat = "summary", fun = "mean", orientation = "y") +
+      ggrepel::geom_label_repel(ggplot2::aes(group = locus, y = max(n) + 0.5, label = locus),
+                 stat = "summary", fun = "mean", orientation = "y", direction = "y") +
       ggplot2::geom_text(ggplot2::aes(y = -Inf, label = allele), vjust = 2, size = 3) +
       ggplot2::scale_x_continuous(position = "top") +
-      ggplot2::scale_color_manual(values = c("#377eb8", "#4daf4a", "black")) +
+      ggplot2::scale_color_manual(values = col[levels(profile_data$colour)]) +
       ggplot2::ylim(0, max_count + 1) +
       ggplot2::coord_cartesian(clip = "off") +
       ggplot2::facet_wrap(~ colour, nrow = 3, scales = "free_x") +

@@ -2,4 +2,5 @@
 
 export(ProfileManager)
 export(StatAlleleSpike)
+export(combine_person_data)
 export(stat_allele_spike)

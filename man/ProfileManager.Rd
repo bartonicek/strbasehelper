@@ -11,6 +11,8 @@ An R6 class that handles fetching STRBase tables and linking it with profile dat
 \describe{
 \item{\code{multiplex}}{The multiplex to be used}
 
+\item{\code{fetched}}{List of fetched loci}
+
 \item{\code{profile_data}}{Profile data, stored as a long dataframe (locus, colour, allele, count)}
 
 \item{\code{unique_loci}}{Vector of unique loci present in the data}
@@ -37,7 +39,7 @@ An R6 class that handles fetching STRBase tables and linking it with profile dat
 \subsection{Method \code{new()}}{
 Create a new ProfileManager object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$new(profile_data, multiplex = "Powerplex 16")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$new(profile_data, multiplex = "PowerPlex 16")}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -56,13 +58,17 @@ Create a new ProfileManager object
 \subsection{Method \code{fetch_strbase_tables()}}{
 Retrives multiple sets of tables with information about gene loci from STRBase
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$fetch_strbase_tables(loci = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$fetch_strbase_tables(loci = NULL, n = NULL, refetch = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{loci}}{Loci to be retrived (defaults to all unique loci in the profile data)}
+
+\item{\code{n}}{(Optional) fetch only the first n loci}
+
+\item{\code{refetch}}{Refetch tables that have been already fetched}
 }
 \if{html}{\out{</div>}}
 }
@@ -73,9 +79,16 @@ Retrives multiple sets of tables with information about gene loci from STRBase
 \subsection{Method \code{extract_basepairs()}}{
 Extract basepair information from STRBase tables
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$extract_basepairs()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$extract_basepairs(multiplex = "PowerPlex 16")}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{multiplex}}{The multiplex to be used for matching base-pairs}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProfileManager-profile_plot"></a>}}
@@ -83,9 +96,18 @@ Extract basepair information from STRBase tables
 \subsection{Method \code{profile_plot()}}{
 Plot base pair information
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$profile_plot()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ProfileManager$profile_plot(
+  col = c(blue = "#377eb8", green = "#4daf4a", yellow = "black")
+)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{col}}{Named vector of colours matching the colour variable in the dataset}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProfileManager-clone"></a>}}
